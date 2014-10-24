@@ -34,9 +34,9 @@ class Block:
     # parse raw stream tools block object.
     else:
       
-      self.id = kw['raw'].get('Id', None)
-      self.type = kw['raw'].get('Type', None)
-      self.rule = kw['raw'].get('Rule', {})
+      self.id = kw['raw'].get('Id', id)
+      self.type = kw['raw'].get('Type', type)
+      self.rule = kw['raw'].get('Rule', rule)
       
       # position
       pos = kw['raw'].get('Position')
@@ -155,10 +155,10 @@ class Connection:
       self.to_route = to_route
 
     else:
-      self.id = kw['raw'].get('Id', None)
-      self.from_id = kw['raw'].get('FromId', None)
-      self.to_id = kw['raw'].get('ToId', None)
-      self.to_route = kw['raw'].get('ToRoute', 'in')
+      self.id = kw['raw'].get('Id', id)
+      self.from_id = kw['raw'].get('FromId', from_id)
+      self.to_id = kw['raw'].get('ToId', to_id)
+      self.to_route = kw['raw'].get('ToRoute', to_route)
 
     
     # initialize client.
