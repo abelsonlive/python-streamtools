@@ -46,6 +46,8 @@ p = Pattern()
 # construct blocks
 b1 = Block('test', 'ticker', {'Interval':'1s'})
 b2 = Block('test-3', 'tolog')
+print b1
+print b2 
 
 # construct a Connection explicity / implicitly
 c = Connection(from_id=b1.id, to_id=b2.id, to_route='in')
@@ -58,8 +60,9 @@ p += b2
 
 # add connection to pattern
 p += c
+print p
 
-# checf it patterne exists yet
+# checf it pattern exists yet
 print st.get_pattern()
 
 # explicity build pattern
@@ -68,7 +71,7 @@ p.build()
 # there it is
 print st.get_pattern()
 
-# stram to output
+# stream block output
 for line in st.stream(b1.id):
   print line
 ```
