@@ -109,9 +109,10 @@ class Api:
     """
     Delete the current pattern
     """
-    self.set_pattern(pattern={'Connections':[], 'Blocks': []})
-    return True
-
+    output = []
+    output.append(self.delete_connections())
+    output.append(self.delete_blocks())
+    return all(output)
 
   # TODO: Websocket support.
   # def ws(self, block_id):
