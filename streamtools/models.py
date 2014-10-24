@@ -122,7 +122,7 @@ class Pattern(dict):
       return self
 
   def __repr__(self):
-    return "< Pattern => Connections = {} / Blocks {} >"\
+    return "< Pattern => Connections = {} / Blocks = {} >"\
       .format(self.connections, self.blocks)
 
 if __name__ == '__main__':
