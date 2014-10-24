@@ -85,7 +85,7 @@ class Api:
     return self._http('GET', 'library')
 
 
-  def export_pattern(self):
+  def get_pattern(self):
     """
     Export the current state of the pattern.
     """
@@ -93,7 +93,7 @@ class Api:
     return self._http('GET', 'export')
 
 
-  def import_pattern(self, pattern):
+  def set_pattern(self, pattern):
     """
     Import a pattern from a dictionary object.
     """
@@ -109,7 +109,7 @@ class Api:
     """
     Delete the current pattern
     """
-    self.import_pattern(pattern={'Connections':[], 'Blocks': []})
+    self.set_pattern(pattern={'Connections':[], 'Blocks': []})
     return True
 
 

@@ -195,8 +195,8 @@ class Pattern(dict):
 
   def build(self, overwrite=True):
     if overwrite:
-      self._st.import_pattern({})
-    self._st.import_pattern(self)
+      self._st.set_pattern({})
+    self._st.set_pattern(self)
 
   def __add__(self, obj):
     

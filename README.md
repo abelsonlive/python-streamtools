@@ -61,7 +61,7 @@ print st.get_pattern()
 p.build()
 
 # there it is
-print st.export_pattern()
+print st.get_pattern()
 
 # stram to output
 for line in st.stream(b1.id):
