@@ -249,7 +249,8 @@ class Api:
     # execute
     return self._http('POST', 
       'blocks/{}/{}'.format(block_id, kw['route']), 
-      data=kw['msg'])
+      data=kw['msg']
+    )
 
 
   def from_block_route(self, block_id, **kw):
@@ -286,7 +287,7 @@ class Api:
 
     # optionally set connection id
     if conn_id:
-      options['conn_id'] = conn_id 
+      options['Id'] = conn_id 
 
     resp = self._http("POST", 'connections', data=options)
 

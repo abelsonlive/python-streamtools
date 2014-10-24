@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-import streamtools
+from streamtools import Api, Block, Connection, Pattern
 
-st = streamtools.Api()
+st = Api()
 
 class StreamToolsTests(TestCase):
 
@@ -12,7 +12,7 @@ class StreamToolsTests(TestCase):
 
   def test_block(self):
     try:
-      st.delete_block(self.test_id)
+      st.delete_pattern()
     except:
       pass
 
@@ -20,6 +20,7 @@ class StreamToolsTests(TestCase):
     assert bid == self.test_id
     
     blocks = st.list_blocks()
+    print blocks
     assert blocks[0]['Id'] == self.test_id
     
     block = st.get_block(self.test_id)
@@ -31,6 +32,29 @@ class StreamToolsTests(TestCase):
     print block['Rule']['Interval'], self.test_rule['Interval']
     assert block['Rule']['Interval'] != self.test_rule['Interval']
 
+  def test_construction(self):
+    try:
+      st.delete_pattern()
+    except:
+      pass
+
+    b = Block('1', 'ticker', {'Interval': '1s'})
+    b2 = Block('2', 'tolog')
+    
+    p = Pattern()
+    p += b 
+    p += b2
+   
+    print st.get_pattern()
+    
+    c = (b + b2)
+    c.to_route ='rule'
+    p += c
+    
+    p.build()
+    
+    p = st.get_pattern()
+    assert(p['Connections'][0]['ToRoute'] == c.to_route)
     
   def teardown(self):
     st.delete_block(self.test_id)

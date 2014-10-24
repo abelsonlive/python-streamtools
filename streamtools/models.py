@@ -45,10 +45,11 @@ class Block:
       return c
 
   def __repr__(self):
-    return "< Block {} / {} >".format(self.id, self.type)
+    return "< Block {} / {} >"\
+      .format(self.id, self.type)
 
 
-class Connection(dict):
+class Connection:
   
   def __init__(self, 
       id = None, 
@@ -83,16 +84,18 @@ class Connection(dict):
       return obj
 
   def __repr__(self):
-    return "< Connection {} / Block {} => Block {}>".format(self.id, self.from_id, self.to_id)
+    return "< Connection {} / Block {} => Block {}>"\
+      .format(self.id, self.from_id, self.to_id)
 
 
-class Pattern(dict):
+class Pattern:
 
   def __init__(self,
       connections = [],
       blocks = [],
       **kw
     ):
+    
     self.connections = connections 
     self.blocks = blocks
 
@@ -124,18 +127,4 @@ class Pattern(dict):
   def __repr__(self):
     return "< Pattern => Connections = {} / Blocks = {} >"\
       .format(self.connections, self.blocks)
-
-if __name__ == '__main__':
-  st = Api()
-  b = Block('1', 'ticker', {'Interval': '1s'})
-  b2 = Block('2', 'tolog')
-  c = Connection('3', from_id = b.id, to_id = b2.id, to_route='in')
-  p = Pattern()
-  p += b 
-  p += b2
-  p += c  
-  print st.get_pattern()
-  p.build()
-  print st.get_pattern()
-
 
