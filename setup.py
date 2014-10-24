@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 # setup
 setup(
   name='python-streamtools',
-  version='0.0.2',
+  version='0.0.3',
   description='A python wrapper for streamtools: http://nytlabs.github.io/streamtools',
   long_description = "",
   classifiers=[
