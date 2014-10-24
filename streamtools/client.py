@@ -9,7 +9,9 @@ class Api:
     self.s = Session()
 
   def _http(self, method, path, json=True, **kw):
-    
+    """
+    A wrapper for http requests to streamtools.
+    """
     # serialize all incoming json
     if 'data' in kw:
       kw['data'] = ujson.dumps(kw['data'])
@@ -149,6 +151,9 @@ class Api:
       return True
 
   def delete_blocks(self):
+    """
+    Delete all blocks
+    """
     for block in self.list_blocks():
       self.delete_block(block['Id'])
     return True
@@ -157,16 +162,16 @@ class Api:
     """
     A helpser for updating a block's rule.
     """
-    self.route_to_block(block_id, route='rule', msg=rule)
+    self.to_block_route(block_id, route='rule', msg=rule)
 
-  def route_to_block(self, block_id, **kw):
+  def from_block_route(self, block_id, **kw):
     """
     Route a message to block's input route.
     """
     kw.setdefault('route', 'in')
     return self._http('POST', 'blocks/{}/{}'.format(block_id, kw['route']), data=kw['msg'])
 
-  def route_from_block(self, block_id, **kw):
+  def to_block_route(self, block_id, **kw):
     """
     Get the current state of a blocks specified output route
     """
@@ -180,6 +185,9 @@ class Api:
     return self._http("GET", 'connections')
 
   def create_connection(self, conn_id=None, **kw):
+    """
+    Create a connection.
+    """
     options = {
       'FromId': kw['from_id'],
       'ToId': kw['to_id'],
@@ -215,10 +223,16 @@ class Api:
     return True
 
   def delete_connections(self):
+    """
+    Delete all connections.
+    """
     for conn in self.list_connections():
       self.delete_connection(conn['Id'])
     return True
 
-  def route_from_connection(self, conn_id, route='last'):
+  def from_connection_route(self, conn_id, route='last'):
+    """
+    Get the current state of a connection's specified route.
+    """
     return self._http("GET", 'connections/{}/{}'.format(conn_id, route))
 
