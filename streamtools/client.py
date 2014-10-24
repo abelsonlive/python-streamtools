@@ -8,30 +8,11 @@ class Api:
     self.url = url if url else 'localhost:7070'
     self.s = Session()
 
-  def _http(self, method, path, json=True, **kw):
+  def version(self):
     """
-    A wrapper for http requests to streamtools.
+    Get the version of StreamTools
     """
-    # serialize all incoming json
-    if 'data' in kw:
-      kw['data'] = ujson.dumps(kw['data'])
-
-    # construct the url endpoint
-    url = 'http://{}/{}'.format(self.url, path)
-
-    # special handling for streaming kwarg
-    stream = kw.pop('stream', False)
-
-    # format the request
-    req = Request(method, url, **kw)
-
-    # execute
-    resp = self.s.send(req.prepare(), stream=stream)
-
-    # return
-    if json:
-      return ujson.loads(resp.content)
-    return resp
+    return self._http('GET', 'version')
 
   def library(self):
     """
@@ -44,12 +25,6 @@ class Api:
     Export the current state of the pattern.
     """
     return self._http('GET', 'export')
-
-  def version(self):
-    """
-    Get the version of StreamTools
-    """
-    return self._http('GET', 'version')
 
   def import_pattern(self, pattern):
     """
@@ -88,11 +63,15 @@ class Api:
     """
     Stream output from a block's httpstream.
     """
-    path =  'stream/{}'.format(str(block_id))
-    resp = self._http("GET", path, json=False, stream=True)          
+
+    resp = self._http("GET", 'stream/{}'.format(str(block_id)), json=False, stream=True)          
+    
+    # return an endless generator of objects.
     for line in resp.iter_lines():
+    
       if line:
         yield ujson.loads(line)
+    
       else:
         break
 
@@ -111,13 +90,17 @@ class Api:
     if 'daemon' in resp and 'already exists' in resp['daemon']:
       raise ValueError('Block "{}" already exists'.format(block_id))
     
-    else:
-      return resp
+    return resp
 
   def create_block(self, block_id=None, **kw):
     """
     Create a block given an id, type, rule (dict), xpos and ypos.
     """
+    
+    # parse kwargs
+    kw.setdefault('rule', None)
+    assert('type' in kw)
+
     options = {
       'Type': kw.get('type'),   
       'Rule': kw.get('rule'),
@@ -135,8 +118,7 @@ class Api:
     if 'daemon' in resp and 'already exists' in resp['daemon']:
       raise ValueError('Block "{}" already exists'.format(block_id))
     
-    else:
-      return resp['Id']
+    return resp['Id']
 
   def delete_block(self, block_id):
     """
@@ -147,8 +129,7 @@ class Api:
     if 'daemon' in resp and 'does not exist' in resp['daemon']:
       raise ValueError('Block "{}" Does not exist'.format(block_id))
     
-    else:
-      return True
+    return True
 
   def delete_blocks(self):
     """
@@ -162,16 +143,16 @@ class Api:
     """
     A helpser for updating a block's rule.
     """
-    self.to_block_route(block_id, route='rule', msg=rule)
+    return self.to_block_route(block_id, route='rule', msg=rule)
 
-  def from_block_route(self, block_id, **kw):
+  def to_block_route(self, block_id, **kw):
     """
     Route a message to block's input route.
     """
     kw.setdefault('route', 'in')
     return self._http('POST', 'blocks/{}/{}'.format(block_id, kw['route']), data=kw['msg'])
 
-  def to_block_route(self, block_id, **kw):
+  def from_block_route(self, block_id, **kw):
     """
     Get the current state of a blocks specified output route
     """
@@ -188,11 +169,17 @@ class Api:
     """
     Create a connection.
     """
+    
+    # check kwargs
+    assert('from_id' in kw and 'to_id' in kw)
+
     options = {
       'FromId': kw['from_id'],
       'ToId': kw['to_id'],
       'ToRoute': kw.get('to_route', 'in')
     }
+
+    # optionally set connection id
     if conn_id:
       options['conn_id'] = conn_id 
 
@@ -210,8 +197,7 @@ class Api:
 
     if 'daemon' in resp and 'does not exist' in resp['daemon']:
       raise ValueError('Connection "{}" Does not exist'.format(conn_id))
-    else:
-      return resp
+    return resp
 
   def delete_connection(self, conn_id):
     """
@@ -235,4 +221,29 @@ class Api:
     Get the current state of a connection's specified route.
     """
     return self._http("GET", 'connections/{}/{}'.format(conn_id, route))
+
+  def _http(self, method, path, json=True, **kw):
+    """
+    A wrapper for http requests to streamtools.
+    """
+    # serialize all incoming json
+    if 'data' in kw:
+      kw['data'] = ujson.dumps(kw['data'])
+
+    # construct the url endpoint
+    url = 'http://{}/{}'.format(self.url, path)
+
+    # special handling for streaming kwarg
+    stream = kw.pop('stream', False)
+
+    # format the request
+    req = Request(method, url, **kw)
+
+    # execute
+    resp = self.s.send(req.prepare(), stream=stream)
+
+    # return
+    if json:
+      return ujson.loads(resp.content)
+    return resp
 

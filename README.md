@@ -8,6 +8,12 @@ A `python` wrapper for [`streamtools`](http://nytlabs.github.io/streamtools).
 pip install python-streamtools
 ```
 
+## Tests
+**NOTE** requires `streamtools` to be running on `localhost:7070`.
+```
+nosetests
+```
+
 ## Usage 
 ```python
 import streamtools 
