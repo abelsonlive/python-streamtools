@@ -54,6 +54,9 @@ p += b2
 # add connection to pattern
 p += (b1 + b2)
 
+# alternatively construct a pattern
+c = Connection(from_id=b1.id, to_id=b2.id, to_route='in')
+
 # checf it patterne exists yet
 print st.get_pattern()
 
