@@ -44,15 +44,15 @@ st = Api()
 p = Pattern()
 
 # construct blocks
-b1 = Block('test', 'ticker', {'Interval':'1s'})
-b2 = Block('test-3', 'tolog')
+b1 = Block(type='ticker', rule={'Interval':'1s'})
+b2 = Block(type='tolog')
+
 print b1
 print b2 
 
 # construct a Connection explicity / implicitly
-c = Connection(from_id=b1.id, to_id=b2.id, to_route='in')
+c = b1 + b2
 print c 
-print (b1 + b2)
 
 # add blocks to pattern
 p += b1 
@@ -62,17 +62,11 @@ p += b2
 p += c
 print p
 
-# checf it pattern exists yet
-print st.get_pattern()
-
-# explicity build pattern
-p.build()
-
-# there it is
+# pattern exists on the api
 print st.get_pattern()
 
 # stream block output
-for line in st.stream(b1.id):
+for line in b1.stream():
   print line
 ```
 

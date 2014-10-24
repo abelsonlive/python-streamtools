@@ -38,7 +38,7 @@ class StreamToolsTests(TestCase):
     except:
       pass
 
-    b = Block('1', 'ticker', {'Interval': '1s'})
+    b = Block('1', type='ticker', rule={'Interval': '1s'})
     b2 = Block('2', 'tolog')
     
     p = Pattern()
@@ -48,11 +48,9 @@ class StreamToolsTests(TestCase):
     print st.get_pattern()
     
     c = (b + b2)
-    c.to_route ='rule'
+    print c 
     p += c
-    
-    p.build()
-    
+
     p = st.get_pattern()
     assert(p['Connections'][0]['ToRoute'] == c.to_route)
     
