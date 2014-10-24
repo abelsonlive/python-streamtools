@@ -1,30 +1,40 @@
 from requests import Session, Request
 import ujson
 import random
+import os
 
 class Api:
   
+ 
   def __init__(self, url=None, **kw):
-    self.url = url if url else 'localhost:7070'
+    
+    self.url = self._parse_url(url)
     self.s = Session()
+
 
   def version(self):
     """
-    Get the version of StreamTools
+    Get the current version of StreamTools
     """
+    
     return self._http('GET', 'version')
+
 
   def library(self):
     """
     Get parameters for all available blocks.
     """
+    
     return self._http('GET', 'library')
+
 
   def export_pattern(self):
     """
     Export the current state of the pattern.
     """
+    
     return self._http('GET', 'export')
+
 
   def import_pattern(self, pattern):
     """
@@ -36,8 +46,8 @@ class Api:
     if response['daemon'] != 'OK':
       raise ValueError('Error loading pattern')
     
-    else:
-      return True
+    return True
+
 
   # TODO: Websocket support.
   # def ws(self, block_id):
@@ -59,12 +69,16 @@ class Api:
   #     else:
   #       break
 
+
   def stream(self, block_id):
     """
     Stream output from a block's httpstream.
     """
 
-    resp = self._http("GET", 'stream/{}'.format(str(block_id)), json=False, stream=True)          
+    resp = self._http("GET", 
+      'stream/{}'.format(str(block_id)), 
+      json=False, 
+      stream=True)          
     
     # return an endless generator of objects.
     for line in resp.iter_lines():
@@ -75,22 +89,27 @@ class Api:
       else:
         break
 
+
   def list_blocks(self):
     """
     List all blocks in current pattern.
     """
+    
     return self._http("GET", 'blocks')
+
 
   def get_block(self, block_id):
     """
     Get a representation of a block.
     """
+    
     resp = self._http("GET", 'blocks/{}'.format(block_id))
     
     if 'daemon' in resp and 'already exists' in resp['daemon']:
       raise ValueError('Block "{}" already exists'.format(block_id))
     
     return resp
+
 
   def create_block(self, block_id=None, **kw):
     """
@@ -120,10 +139,12 @@ class Api:
     
     return resp['Id']
 
+
   def delete_block(self, block_id):
     """
     Delete a block.
     """
+    
     resp = self._http("DELETE", 'blocks/{}'.format(block_id))
 
     if 'daemon' in resp and 'does not exist' in resp['daemon']:
@@ -131,39 +152,58 @@ class Api:
     
     return True
 
+
   def delete_blocks(self):
     """
     Delete all blocks
     """
+    
     for block in self.list_blocks():
       self.delete_block(block['Id'])
+
     return True
+
 
   def update_block(self, block_id, rule):
     """
-    A helpser for updating a block's rule.
+    A helper for updating a block's rule.
     """
+    
     return self.to_block_route(block_id, route='rule', msg=rule)
+
 
   def to_block_route(self, block_id, **kw):
     """
     Route a message to block's input route.
     """
+    
+    # parse kwargs
     kw.setdefault('route', 'in')
-    return self._http('POST', 'blocks/{}/{}'.format(block_id, kw['route']), data=kw['msg'])
+    assert('msg' in kw)
+
+    # execute
+    return self._http('POST', 
+      'blocks/{}/{}'.format(block_id, kw['route']), 
+      data=kw['msg'])
+
 
   def from_block_route(self, block_id, **kw):
     """
     Get the current state of a blocks specified output route
     """
+    
     kw.setdefault('route', 'rule')
+    
     return self._http('GET', 'blocks/{}/{}'.format(block_id, kw['route']))
+
 
   def list_connections(self):
     """
     Get all current connections.
     """
+    
     return self._http("GET", 'connections')
+
 
   def create_connection(self, conn_id=None, **kw):
     """
@@ -187,45 +227,81 @@ class Api:
 
     if 'daemon' in resp and 'does not exist' in resp['daemon']:
       raise ValueError('Block "{}" Does not exist'.format(conn_id))
+    
     return resp['Id']
+
 
   def get_connection(self, conn_id):
     """
     Get a connection object
     """
+    
     resp = self._http("GET", 'connections/{}'.format(conn_id))
 
     if 'daemon' in resp and 'does not exist' in resp['daemon']:
       raise ValueError('Connection "{}" Does not exist'.format(conn_id))
+    
     return resp
+
 
   def delete_connection(self, conn_id):
     """
     Delete a connection.
     """
+    
     resp = self._http("DELETE", 'connections/{}'.format(conn_id))
+    
     if 'daemon' in resp and 'does not exist' in resp['daemon']:
       raise ValueError('Connection "{}" Does not exist'.format(conn_id))
+    
     return True
+
 
   def delete_connections(self):
     """
     Delete all connections.
     """
+    
     for conn in self.list_connections():
       self.delete_connection(conn['Id'])
+    
     return True
+
 
   def from_connection_route(self, conn_id, route='last'):
     """
     Get the current state of a connection's specified route.
     """
+    
     return self._http("GET", 'connections/{}/{}'.format(conn_id, route))
+
+
+  def _parse_url(self, url):
+    """
+    Parse the url given on initialization.
+    """
+    
+    env_url = os.getenv('STREAMTOOLS_URL')
+    
+    if url:
+      
+      return url\
+        .replace('http://', '')\
+        .replace('/', '/')\
+        .strip()   
+
+    elif env_url:
+      
+      return env_url
+
+    return 'localhost:7070'
+
 
   def _http(self, method, path, json=True, **kw):
     """
     A wrapper for http requests to streamtools.
     """
+    
     # serialize all incoming json
     if 'data' in kw:
       kw['data'] = ujson.dumps(kw['data'])
@@ -244,6 +320,8 @@ class Api:
 
     # return
     if json:
+      
       return ujson.loads(resp.content)
+    
     return resp
 
