@@ -15,6 +15,8 @@ nosetests
 ```
 
 ## Usage 
+
+### Low-level API Access
 ```python
 import streamtools 
 
@@ -30,6 +32,42 @@ for msg in st.stream(ticker_id):
   print msg
 ```
 
+### Block, Connection, Pattern Construction:
+
+```python
+from streamtools import Api, Block, Pattern 
+
+# init api
+st = Api()
+
+# init empty Pattern
+p = Pattern()
+
+# blocks
+b1 = Block('test', 'ticker', {'Interval':'1s'})
+b2 = Block('test-3', 'tolog')
+
+# add blocks to pattern
+p += b1 
+p += b2 
+
+# add connection to pattern
+p += (b1 + b2)
+
+# checf it patterne exists yet
+print st.get_pattern()
+
+# explicity build pattern
+p.build()
+
+# there it is
+print st.export_pattern()
+
+# stram to output
+for line in st.stream(b1.id):
+  print line
+```
+
 ## Notes
 * Documentation is basic for now, refer to the [streamtools docs](http://nytlabs.github.io/streamtools/docs/), and the source code for full usage.
 * `st.stream` seems to have significant latency.
@@ -38,17 +76,3 @@ for msg in st.stream(ticker_id):
 
 - [ ] Websocket support
 - [ ] Custom Blocks which allow you to insert a python script, Would work via creating a series of blocks to query an internal api, pass input to a function, and pass output to another block.
-- [ ] Dynamic creation of patterns via Block and Connection objects, eg:
-
-```python
-from streamtools import Block, Stream
-
-ticker = Block('ticker', {'Interval': '1s'})
-logger = Block('tolog', {'Interval': '1s'})
-
-conn = ticker + logger 
-
-s = Stream(ticker.id)
-for line in s.listen():
-  print line
-```

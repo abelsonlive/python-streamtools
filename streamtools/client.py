@@ -6,11 +6,60 @@ from util import random_position
 
 class Api:
   
- 
   def __init__(self, url=None, **kw):
     
     self.url = self._parse_url(url)
     self.s = Session()
+
+  def _parse_url(self, url):
+    """
+    Parse the url given on initialization.
+    """
+    
+    env_url = os.getenv('STREAMTOOLS_URL')
+    
+    if url:
+      
+      return url\
+        .replace('http://', '')\
+        .replace('/', '/')\
+        .strip()   
+
+    elif env_url:
+      
+      return env_url
+
+    return 'localhost:7070'
+
+
+  def _http(self, method, path, json=True, **kw):
+    """
+    A wrapper for http requests to streamtools.
+    """
+    
+    # serialize all incoming json
+    if 'data' in kw:
+      kw['data'] = ujson.dumps(kw['data'])
+
+    # construct the url endpoint
+    url = 'http://{}/{}'.format(self.url, path)
+
+    # special handling for streaming kwarg
+    stream = kw.pop('stream', False)
+
+    # format the request
+    req = Request(method, url, **kw)
+
+    # execute
+    resp = self.s.send(req.prepare(), stream=stream)
+
+    # return
+    if json:
+      
+      return ujson.loads(resp.content)
+    
+    return resp
+
 
   @property 
   def connection_ids(self):
@@ -54,6 +103,13 @@ class Api:
     if response['daemon'] != 'OK':
       raise ValueError('Error loading pattern')
     
+    return True
+
+  def delete_pattern(self):
+    """
+    Delete the current pattern
+    """
+    self.import_pattern(pattern={'Connections':[], 'Blocks': []})
     return True
 
 
@@ -282,57 +338,3 @@ class Api:
     """
     
     return self._http("GET", 'connections/{}/{}'.format(conn_id, route))
-
-
-  def _parse_url(self, url):
-    """
-    Parse the url given on initialization.
-    """
-    
-    env_url = os.getenv('STREAMTOOLS_URL')
-    
-    if url:
-      
-      return url\
-        .replace('http://', '')\
-        .replace('/', '/')\
-        .strip()   
-
-    elif env_url:
-      
-      return env_url
-
-    return 'localhost:7070'
-
-
-  def _http(self, method, path, json=True, **kw):
-    """
-    A wrapper for http requests to streamtools.
-    """
-    
-    # serialize all incoming json
-    if 'data' in kw:
-      kw['data'] = ujson.dumps(kw['data'])
-
-    # construct the url endpoint
-    url = 'http://{}/{}'.format(self.url, path)
-
-    # special handling for streaming kwarg
-    stream = kw.pop('stream', False)
-
-    # format the request
-    req = Request(method, url, **kw)
-
-    # execute
-    resp = self.s.send(req.prepare(), stream=stream)
-
-    # return
-    if json:
-      
-      return ujson.loads(resp.content)
-    
-    return resp
-
-if __name__ == '__main__':
-  st = Api()
-  print st.export_pattern()

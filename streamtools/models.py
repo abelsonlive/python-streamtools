@@ -207,35 +207,3 @@ class Pattern(dict):
     elif isinstance(obj, Connection):
       self.connections.append(obj)
       return self
-
-
-if __name__ == '__main__':
-
-  # init api
-  st = Api()
-
-  # init empty Pattern
-  p = Pattern()
-
-  # blocks
-  b1 = Block('test', 'ticker', {'Interval':'1s'})
-  b2 = Block('test-3', 'tolog')
-
-  # add blocks to pattern
-  p += b1 
-  p += b2 
-
-  # add connection to pattern
-  p += Connection('3', b1.id, b2.id, 'in')
-
-
-  # explicity build
-  p.build()
-
-  # there it is
-  print st.export_pattern()
-
-  # print type(p), p
-  # print p.connections
-  # c = Connection('test-conn', '1', '2', 'rule')
-  
