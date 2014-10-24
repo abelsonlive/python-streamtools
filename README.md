@@ -35,7 +35,7 @@ for msg in st.stream(ticker_id):
 ### Block, Connection, Pattern Construction:
 
 ```python
-from streamtools import Api, Block, Pattern 
+from streamtools import Api, Block, Connection, Pattern 
 
 # init api
 st = Api()
