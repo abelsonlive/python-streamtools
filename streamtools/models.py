@@ -345,7 +345,7 @@ class Pattern:
   def block_ids(self):
     return [b.id for b in self.blocks]
 
-  def rm(self):
+  def stop(self):
 
     # only delete blocks + connection associated 
     # with this pattern
@@ -362,12 +362,12 @@ class Pattern:
         except ValueError:
           pass 
 
-  def refresh(self, overwrite=True):
-    
-    if overwrite:
-      self.rm()
-
+  def start(self):
     self._st.set_pattern(self.raw)
+
+  def refresh(self, overwrite=True):
+    self.stop()
+    self.start()
 
   def send_to(self, msg):
     inblock = [b for b in self.blocks if b.id == self.inblock][0]
