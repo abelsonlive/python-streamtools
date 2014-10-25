@@ -1,7 +1,9 @@
 import time 
 import ujson
 import uuid
-from kombu import Connection, Exchange, Queue
+
+import kombu
+from kombu import Exchange, Queue
 from kombu.common import maybe_declare
 from kombu.pools import producers
 from kombu.mixins import ConsumerMixin
@@ -14,7 +16,7 @@ from util import md5, random_position
 logger = get_logger(__name__)
 
 EXCHANGE = Exchange(settings.EXCHANGE_NAME, type=settings.EXCHANGE_TYPE)
-CONN = Connection(settings.AMPQ_URL)
+CONN = kombu.Connection(settings.AMPQ_URL)
 
 class Plugin(ConsumerMixin):
   """
@@ -75,10 +77,14 @@ class Plugin(ConsumerMixin):
 
   def on_message(self, body, message):
     body = ujson.loads(body)
-    messages = self.main(body)
-    for m in messages:
-      self.send_to(m)
-    message.ack()
+    try:
+      messages = self.main(body)
+    except Exception as e:
+      print 'Got Error', e
+    else:
+      for m in messages:
+        self.send_to(m)
+      message.ack()
 
   def send_to(self, body):
     with producers[self.connection].acquire(block=True) as producer: 
@@ -140,8 +146,8 @@ class Block:
       type = None, 
       rule = {},
       position = None,
-      x_pos = random_position(20, 900),
-      y_pos = random_position(20, 500),
+      x_pos = random_position(min_=20, max_=900),
+      y_pos = random_position(min_=20, max_=500),
       **kw
     ):
 

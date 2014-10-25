@@ -3,7 +3,7 @@ import hashlib
 import ujson
 
 def random_position(min_=15, max_=900):
-  return random.choice(range(min_, max_))
+  return random.choice(range(min_, max_+1))
 
 def md5(contents, json=True):
   if json:

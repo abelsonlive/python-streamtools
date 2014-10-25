@@ -19,7 +19,7 @@ def say_main(body):
   if text: 
     text = "".join([c for c in text if c not in punctuation])
     if text:
-      os.system('say "%s"' % unidecode(text))
+      os.system('say -r 20 -v Princess "%s" &' % unidecode(text))
       yield {'clean_text': text}
 
 say.main = say_main 
