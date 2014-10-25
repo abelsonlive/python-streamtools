@@ -291,7 +291,7 @@ class Pattern:
     ):
     
     self.connections = connections 
-    self.blocks = {b for c in self.connections for b in c.blocks}
+    self.blocks = [b for c in self.connections for b in c.blocks]
 
     # initialize client.
     self.url = kw.get('url', settings.STREAMTOOLS_URL)

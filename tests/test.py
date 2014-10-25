@@ -39,16 +39,9 @@ class StreamToolsTests(TestCase):
       pass
 
     b = Block('1', type='ticker', rule={'Interval': '1s'})
-    b2 = Block('2', 'tolog')
-    
+    b2 = Block('2', 'tolog')    
+    c = b + b2
     p = Pattern()
-    p += b 
-    p += b2
-   
-    print st.get_pattern()
-    
-    c = (b + b2)
-    print c 
     p += c
 
     p = st.get_pattern()
