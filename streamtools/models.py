@@ -76,7 +76,7 @@ class Block:
     }
 
   @property 
-  def inblocks(self):
+  def in_blocks(self):
     block_ids = []
     for c in self._st.list_connections():
       if c['ToId'] == self.id:
@@ -84,12 +84,30 @@ class Block:
     return block_ids
 
   @property 
-  def outblocks(self):
+  def out_blocks(self):
     block_ids = []
     for c in self._st.list_connections():
       if c['FromId'] == self.id:
         block_ids.append(c['ToId'])
     return block_ids
+
+  @property 
+  def in_routes(self):
+    resp = self._st.library()
+    resp = resp.get(self.id, {})
+    return resp.get('InRoutes', []]
+
+  @property 
+  def out_routes(self):
+    resp = self._st.library()
+    resp = resp.get(self.id, {})
+    return resp.get('OutRoutes', []]
+
+  @property 
+  def query_routes(self):
+    resp = self._st.library()
+    resp = resp.get(self.id, {})
+    return resp.get('QueryRoutes', []]
 
   def stop(self):
     try:
