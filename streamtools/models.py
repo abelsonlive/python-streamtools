@@ -411,7 +411,7 @@ class Connection:
           yield msg 
 
       # trim buffer
-      if len(list(buffer)) >- max_buffer:
+      if len(buffer) >- max_buffer:
         buffer = [buffer[-1]]
 
       # rest
