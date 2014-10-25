@@ -37,7 +37,7 @@ class Block:
     self._lib = self._st.library()
 
     # pull in existing block
-    if self.exists():
+    if self.is_attached():
       kw['raw'] = self._st.get_block(self.id)
 
     # check for raw switch
@@ -276,7 +276,7 @@ class Connection:
     self._st = Api(self.url)
 
     # pull in existing block if it exists.
-    if self.exists():
+    if self.is_attached():
       kw['raw'] = self._st.get_block(self.id)
 
     if not 'raw' in kw:
@@ -453,7 +453,7 @@ class Pattern:
     # global in/out blocks.
     self.in_block = kw.get('in_block', None)
     self.in_route = kw.get('in_route', 'in')
-    self.out_block =k kw.get('out_block', None)
+    self.out_block = kw.get('out_block', None)
     self.out_route = kw.get('out_route', 'out')
       
   @property 
