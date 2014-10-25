@@ -3,6 +3,7 @@ import ujson
 import os
 
 from util import random_position
+import settings 
 
 class Api:
   
@@ -22,14 +23,14 @@ class Api:
       
       return url\
         .replace('http://', '')\
-        .replace('/', '/')\
+        .replace('/', '')\
         .strip()   
 
     elif env_url:
       
       return env_url
 
-    return 'localhost:7070'
+    return settings.STREAMTOOLS_URL
 
 
   def _http(self, method, path, json=True, **kw):
@@ -63,7 +64,7 @@ class Api:
 
   @property 
   def connection_ids(self):
-    return frozenset([c['Id'] for c in self.list_connections()])
+    return [c['Id'] for c in self.list_connections()]
 
   @property 
   def block_ids(self):
