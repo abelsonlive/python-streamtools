@@ -315,21 +315,11 @@ class Pattern:
     self._st = Api(self.url)
 
     # global in/out blocks.
-    self.inblock = None
-    self.inroute = kw.get('inroute', 'in')
-    self.outblock = None
-    self.outroute = kw.get('outroute', 'out')
+    self.in_block = kw.get('in_block', None)
+    self.in_route = kw.get('in_route', 'in')
+    self.out_block =k kw.get('out_block', None)
+    self.out_route = kw.get('out_route', 'out')
       
-    if 'outblock' in kw:
-      self.outblock = kw['outblock']
-
-    elif 'inblock' in kw:
-      self.inblock = kw['inblock']
-
-    elif len(self.blocks):
-      self.inblock = self.blocks[0]
-      self.outblock = self.blocks[-1]
-
   @property 
   def raw(self):
     return {
@@ -370,12 +360,12 @@ class Pattern:
     self.start()
 
   def send_to(self, msg):
-    inblock = [b for b in self.blocks if b.id == self.inblock][0]
-    return self._st.to_block_route(inblock.id, route=self.inroute, msg=msg)
+    inblock = [b for b in self.blocks if b.id == self.in_block][0]
+    return self._st.to_block_route(in_block.id, route=self.in_route, msg=msg)
 
   def stream(self):
-    outblock = [b for b in self.blocks if b.id == self.outblock][0]
-    return self._st.from_block_route(outblock.id, route=self.outroute, msg=msg)
+    ou_tblock = [b for b in self.blocks if b.id == self.out_block][0]
+    return self._st.from_block_route(out_block.id, route=self.out_route, msg=msg)
 
   def __add__(self, obj):
     
