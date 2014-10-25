@@ -363,8 +363,8 @@ class Pattern:
     inblock = [b for b in self.blocks if b.id == self.in_block][0]
     return self._st.to_block_route(in_block.id, route=self.in_route, msg=msg)
 
-  def stream(self):
-    ou_tblock = [b for b in self.blocks if b.id == self.out_block][0]
+  def listen(self):
+    out_block = [b for b in self.blocks if b.id == self.out_block][0]
     return self._st.from_block_route(out_block.id, route=self.out_route, msg=msg)
 
   def __add__(self, obj):
