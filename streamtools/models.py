@@ -95,19 +95,19 @@ class Block:
   def in_routes(self):
     resp = self._st.library()
     resp = resp.get(self.id, {})
-    return resp.get('InRoutes', []]
+    return resp.get('InRoutes', [])
 
   @property 
   def out_routes(self):
     resp = self._st.library()
     resp = resp.get(self.id, {})
-    return resp.get('OutRoutes', []]
+    return resp.get('OutRoutes', [])
 
   @property 
   def query_routes(self):
     resp = self._st.library()
     resp = resp.get(self.id, {})
-    return resp.get('QueryRoutes', []]
+    return resp.get('QueryRoutes', [])
 
   def stop(self):
     try:
