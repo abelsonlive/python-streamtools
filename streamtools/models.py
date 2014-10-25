@@ -1,42 +1,13 @@
-import time 
 
-from client import Api
-import settings
-from util import md5, random_position
+from streamtools import Api
+from streamtools import settings
+from streamtools.util import random_position, md5
 
 def rand_x():
   return random_position(20, 900)
 
 def rand_y():
   return random_position(20, 500)
-
-class Plugin:
-
-  """
-  A plugin is a custom class which 
-  creates two blocks:
-  
-  one that recieves a msg from a channel
-  one that emits msgs to a channel 
-  
-  each block can have a configurable route 
-  which is handled by assoicated methods:
-
-  attach
-  detach  
-  (confifurable) message queue 
-  and one that sends to another 
-
-  in between is a python function
-  which the user defines.
-  
-  This enables endless extensability.
-
-  """
-  def __init__(self):
-    pass
-
-
 
 class Block:
  
@@ -154,7 +125,7 @@ class Block:
     This Block's available InRoutes
     """
 
-    resp = self._lib.get(self.id, {})
+    resp = self._lib.get(self.type, {})
     return resp.get('InRoutes', [])
 
   @property 
@@ -164,7 +135,7 @@ class Block:
     This Block's available OutRoutes
     """
 
-    resp = self._lib.get(self.id, {})
+    resp = self._lib.get(self.type, {})
     return resp.get('OutRoutes', [])
 
   @property 
@@ -174,7 +145,7 @@ class Block:
     This Block's available QueryRoutes
     """
 
-    resp = self._lib.get(self.id, {})
+    resp = self._lib.get(self.type, {})
     return resp.get('QueryRoutes', [])
 
   def attach(self):
@@ -282,6 +253,7 @@ class Block:
     
     return "< Block.{} = {}, {} >"\
       .format(self.id, self.type, self.rule)
+
 
 
 class Connection:
@@ -551,7 +523,7 @@ class Pattern:
 
     """
     Detach this Pattern from streamtools. 
-    Only delete Blocks + Connection associated 
+    Only delete Blocks + Connections associated 
     with this pattern.
     """
 
@@ -653,4 +625,37 @@ class Pattern:
 
     return "< Pattern = Connections => {}, Blocks => {} >"\
       .format(self.connections, self.blocks)
+
+
+class Plugin:
+
+  """
+  A plugin is a custom class which 
+  creates two blocks:
+  
+  one that recieves a msg from a channel
+  one that emits msgs to a channel 
+  
+  each block can have a configurable route 
+  which is handled by assoiciated methods:
+
+  attach
+  detach  
+  (confifurable) message queue 
+  and one that sends to another 
+
+  in between is a python function
+  which the user defines.
+  
+  This enables endless extensability.
+
+  """
+  def __init__(self, **kw):
+
+
+    # initialize client.
+    self.url = kw.get('url', settings.STREAMTOOLS_URL)
+    self._st = Api(self.url)
+
+
 
