@@ -1,22 +1,19 @@
+from client import Api
+
+from util import md5, random_position
+import settings
+
 import time 
 import ujson
 import uuid
-
-import kombu
-from kombu import Exchange, Queue
+from kombu import Queue
 from kombu.common import maybe_declare
 from kombu.pools import producers
 from kombu.mixins import ConsumerMixin
 from kombu.log import get_logger
 
-from client import Api
-import settings
-from util import md5, random_position
-
 logger = get_logger(__name__)
 
-EXCHANGE = Exchange(settings.EXCHANGE_NAME, type=settings.EXCHANGE_TYPE)
-CONN = kombu.Connection(settings.AMPQ_URL)
 
 class Plugin(ConsumerMixin):
   """
@@ -29,7 +26,7 @@ class Plugin(ConsumerMixin):
   def __init__(self, id=None, type='plugin', rule={}, **kw):
       
     # setup connection
-    self.connection = CONN
+    self.connection = settings.CONN
     if not id:
       id = str(uuid.uuid4())
     
@@ -40,7 +37,7 @@ class Plugin(ConsumerMixin):
     # setup queues
     self.queues = [
         Queue(settings.EXCHANGE_NAME, 
-            EXCHANGE, 
+            settings.EXCHANGE, 
             routing_key=self.in_key)          
         ]
 
@@ -89,7 +86,7 @@ class Plugin(ConsumerMixin):
   def send_to(self, body):
     with producers[self.connection].acquire(block=True) as producer: 
       try:
-        maybe_declare(EXCHANGE, producer.channel) 
+        maybe_declare(settings.EXCHANGE, producer.channel) 
       except SocketError as e:
         if e.errno != errno.ECONNRESET:
           raise
@@ -97,7 +94,7 @@ class Plugin(ConsumerMixin):
           producer.publish(
             body, 
             exchange=settings.EXCHANGE_NAME,
-            declare=[EXCHANGE], 
+            declare=[settings.EXCHANGE], 
             serializer='json', 
             routing_key=self.out_key)
 
