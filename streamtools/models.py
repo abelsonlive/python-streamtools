@@ -10,6 +10,34 @@ def rand_x():
 def rand_y():
   return random_position(20, 500)
 
+class Plugin:
+
+  """
+  A plugin is a custom class which 
+  creates two blocks:
+  
+  one that recieves a msg from a channel
+  one that emits msgs to a channel 
+  
+  each block can have a configurable route 
+  which is handled by assoicated methods:
+
+  attach
+  detach  
+  (confifurable) message queue 
+  and one that sends to another 
+
+  in between is a python function
+  which the user defines.
+  
+  This enables endless extensability.
+
+  """
+  def __init__(self):
+    pass
+
+
+
 class Block:
  
   """
