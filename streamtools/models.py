@@ -475,7 +475,8 @@ class Pattern:
     self.in_route = kw.get('in_route', 'in')
     self.out_block = kw.get('out_block', None)
     self.out_route = kw.get('out_route', 'out')
-      
+
+    
   @property 
   def raw(self):
 
@@ -487,7 +488,8 @@ class Pattern:
       'Connections': [c.raw for c in self.connections],
       'Blocks': [b.raw for b in self.blocks]
     }
-  
+
+
   @property 
   def connection_ids(self):
 
@@ -497,6 +499,7 @@ class Pattern:
     
     return [c.id for c in self.connections]
 
+
   @property 
   def block_ids(self):
 
@@ -505,6 +508,16 @@ class Pattern:
     """
 
     return [b.id for b in self.blocks]
+
+
+  def attach(self):
+
+    """
+    Attach this Pattern to streamtools. 
+    """
+
+    self._st.set_pattern(self.raw)
+
 
   def detach(self):
 
@@ -528,13 +541,6 @@ class Pattern:
       except ValueError:
         pass 
 
-  def attach(self):
-
-    """
-    Attach this Pattern to streamtools. 
-    """
-
-    self._st.set_pattern(self.raw)
 
   def refresh(self, overwrite=True):
 
@@ -544,6 +550,7 @@ class Pattern:
 
     self.detach()
     self.attach()
+
 
   def send_to(self, msg):
     
@@ -563,6 +570,7 @@ class Pattern:
             msg = msg
           )
 
+
   def listen(self):
 
     """
@@ -575,6 +583,7 @@ class Pattern:
 
     out_block = [b for b in self.blocks if b.id == self.out_block.id][0]
     return self._st.stream(out_block.id)
+
 
   def __add__(self, obj):
 
@@ -606,6 +615,7 @@ class Pattern:
           self.blocks.append(b)
 
       return self
+
 
   def __repr__(self):
 
