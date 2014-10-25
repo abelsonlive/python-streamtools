@@ -80,7 +80,7 @@ class Api:
     The list of active block Id's
     """
     
-    return frozenset([c['Id'] for c in self.list_blocks()])
+    return [c['Id'] for c in self.list_blocks()]
 
   def version(self):
     
@@ -205,7 +205,7 @@ class Api:
     """
     
     # parse kwargs
-    kw.setdefault('rule', None)
+    kw.setdefault('rule', {})
     assert('type' in kw)
 
     options = {

@@ -95,7 +95,7 @@ plugin.attach()
 ## TODO
 
 - [ ] Websocket support
-- [ ] Custom Blocks which allow you to insert a python script, Would work via creating a series of blocks to query an internal api, pass input to a function, and pass output to another block.
+- [x] Custom Blocks which allow you to insert a python script, Would work via creating a series of blocks to query an internal api, pass input to a function, and pass output to another block.
 - [ ] Figure out how to more elegantly specify custom `to_route` when adding two blocks together, eg:
 
 ```python
