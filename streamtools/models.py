@@ -136,8 +136,7 @@ class Block:
     This Block's available OutRoutes
     """
 
-    resp = self._st.library()
-    resp = resp.get(self.id, {})
+    resp = self._lib.get(self.id, {})
     return resp.get('OutRoutes', [])
 
   @property 
@@ -147,8 +146,7 @@ class Block:
     This Block's available QueryRoutes
     """
 
-    resp = self._st.library()
-    resp = resp.get(self.id, {})
+    resp = self._lib.get(self.id, {})
     return resp.get('QueryRoutes', [])
 
   def attach(self):
@@ -167,6 +165,7 @@ class Block:
               )  
 
   def detach(self):
+    
     """
     Detach this Block from streamtools.
     """
@@ -179,6 +178,7 @@ class Block:
       return False
 
   def is_attached(self):
+    
     """
     Check if this Block is attached to streamtools.
     """
@@ -191,6 +191,7 @@ class Block:
       return False
 
   def refresh(self, overwrite=True):
+    
     """
     Check if this Block is attached to streamtools,
     if so, detach it first. Always attach it.
@@ -203,6 +204,7 @@ class Block:
     self.attach()
 
   def send_to(self, **kw):
+    
     """
     Send a msg to this Block's specified route.
     """
@@ -213,8 +215,8 @@ class Block:
 
     return self._st.to_block_route(
             self.id, 
-            route=route, 
-            msg=msg
+            route=kw['route'], 
+            msg=kw['msg']
           )  
 
   def recieve_from(self, **kw):
@@ -224,7 +226,7 @@ class Block:
     """
 
     kw.setdefault('route', 'rule')
-    return self._st.from_block_route(self.id, route=route)
+    return self._st.from_block_route(self.id, route=kw['route'])
 
   def listen(self):
     
@@ -293,6 +295,7 @@ class Connection:
       self.to_route = kw['raw'].get('ToRoute', to_route)
 
     if kw.get('_init', True):
+      
       # refresh block
       self.refresh()
 
@@ -352,9 +355,12 @@ class Connection:
     """
 
     try:
+      
       self._st.get_connection(self.id)
       return True 
+    
     except ValueError:
+      
       return False
 
   def refresh(self):
@@ -384,26 +390,31 @@ class Connection:
     Poll the last route for new results
     """
     
-    msg_id = ''
     buffer = []
     
     while True:
       
-      # get msg, create id
+      # get msg
       msg = self.recieve_from()
       msg = msg.pop('Last', None)
 
       if msg:
+
+        # create msg hash
         msg_id = md5(msg)
 
+        # check if the msg is new
         if msg_id not in buffer:
           buffer.append(msg_id)
 
+          # yield new messages.
           yield msg 
 
+      # trim buffer
       if len(list(buffer)) >- max_buffer:
         buffer = [buffer[-1]]
 
+      # rest
       time.sleep(interval)
 
 
@@ -415,7 +426,7 @@ class Connection:
     
     if isinstance(obj, Pattern):
       obj.connections.append(self)
-      self.blocks.extend(self.blocks)
+      obj.blocks.extend(self.blocks)
       return obj
 
     elif isinstance(obj, Connection):
@@ -532,8 +543,16 @@ class Pattern:
     of this pattern's specifed in_block
     """
     
-    inblock = [b for b in self.blocks if b.id == self.in_block][0]
-    return self._st.to_block_route(in_block.id, route=self.in_route, msg=msg)
+    if not self.in_block:
+      self.in_block = self.blocks[0]
+
+    in_block = [b for b in self.blocks if b.id == self.in_block][0]
+  
+    return self._st.to_block_route(
+            in_block.id, 
+            route=self.in_route, 
+            msg=msg
+          )
 
   def listen(self):
 
@@ -541,6 +560,9 @@ class Pattern:
     Listen for messages from the out route 
     of this pattern's specifed out_block
     """
+
+    if not self.out_block:
+      self.out_block = self.blocks[-1]
 
     out_block = [b for b in self.blocks if b.id == self.out_block][0]
     return self._st.stream(out_block.id)
