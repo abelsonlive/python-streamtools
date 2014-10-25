@@ -54,10 +54,6 @@ print b2
 c = b1 + b2
 print c 
 
-# add blocks to pattern
-p += b1 
-p += b2 
-
 # add connection to pattern
 p += c
 print p
