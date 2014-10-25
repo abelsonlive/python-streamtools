@@ -1,6 +1,6 @@
 
 clean:
-	rm -rf build/ dist/ *egg-info/ .DS_Store
+	rm -rf build/ dist/ *egg-info/ .DS_Store streamtools/*.pyc
 
 build:
 	python setup.py install 

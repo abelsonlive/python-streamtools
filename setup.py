@@ -23,8 +23,18 @@ setup(
   include_package_data=False,
   zip_safe=False,
   install_requires=[
+    "amqp",
+    "anyjson",
+    "backports.ssl-match-hostname",
+    "billiard",
+    "kombu",
+    "librabbitmq",
+    "pytz",
     "requests",
-    "ujson"
+    "six",
+    "ujson",
+    "ws4py",
+    "wsgiref"
   ],
   tests_require=[]
 )

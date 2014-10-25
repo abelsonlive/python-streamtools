@@ -1,2 +1,12 @@
-requests
-ujson
+amqp==1.4.6
+anyjson==0.3.3
+backports.ssl-match-hostname==3.4.0.2
+billiard==3.3.0.18
+kombu==3.0.23
+librabbitmq==1.5.2
+pytz==2014.7
+requests==2.4.3
+six==1.8.0
+ujson==1.33
+ws4py==0.3.4
+wsgiref==0.1.2

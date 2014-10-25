@@ -47,23 +47,45 @@ p = Pattern()
 b1 = Block(type='ticker', rule={'Interval':'1s'})
 b2 = Block(type='tolog')
 
-print b1
-print b2 
+print b1.raw
+print b2.raw
 
 # construct a Connection explicity / implicitly
 c = b1 + b2
-print c 
+print c.raw
 
 # add connection to pattern
 p += c
-print p
+print p.raw
 
-# pattern exists on the api
+# pattern exists on the api too
 print st.get_pattern()
 
 # stream block output
-for line in b1.stream():
+for line in b1.listen():
   print line
+```
+
+### Creating Custom Plugins
+**NOTE** requires rabbitmq.
+`python-streamtools` includes a class for generating `blocks` which enable the use of a customizable python functions.  Plugin's work be creating two built-int `streamtools` blocks: `toampq` and `fromampq` and spawns a reader which listens to `toampq` passes input to a custom function and emits output to the `fromampq` block. In order to initialize the connection you must call `plugin.attach()`
+```python
+from streamtools import Plugin, Block 
+
+def my_function(body):
+  body['im'] = 'here'
+  yield body
+
+plugin = Plugin('my-plugin')
+plugin.main = my_function 
+
+ticker = Block(type='ticker', rule={'Interval':'1s'})
+log = Block(type='tolog')
+
+cin = ticker + plugin.in_block
+cout = plugin.out_block + log 
+
+plugin.attach()
 ```
 
 ## Notes

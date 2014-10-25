@@ -1,13 +1,131 @@
+import time 
+import ujson
+import uuid
+from kombu import Connection, Exchange, Queue
+from kombu.common import maybe_declare
+from kombu.pools import producers
+from kombu.mixins import ConsumerMixin
+from kombu.log import get_logger
 
-from streamtools import Api
-from streamtools import settings
-from streamtools.util import random_position, md5
+from client import Api
+import settings
+from util import md5, random_position
 
-def rand_x():
-  return random_position(20, 900)
+logger = get_logger(__name__)
 
-def rand_y():
-  return random_position(20, 500)
+EXCHANGE = Exchange(settings.EXCHANGE_NAME, type=settings.EXCHANGE_TYPE)
+CONN = Connection(settings.AMPQ_URL)
+
+class Plugin(ConsumerMixin):
+  """
+  A plugin consists of two blocks, a `toampq` block which routes 
+  streams from streamtools into a customizable python function 
+  which emits output to a `fromamqp` which can be used to route the  
+  output to other streamtools blocks.
+  """
+
+  def __init__(self, id=None, type='plugin', rule={}, **kw):
+      
+    # setup connection
+    self.connection = CONN
+    if not id:
+      id = str(uuid.uuid4())
+    
+    # determine routing keys.
+    self.in_key = "in-{}".format(id)
+    self.out_key = "out-{}".format(id)
+
+    # setup queues
+    self.queues = [
+        Queue(settings.EXCHANGE_NAME, 
+            EXCHANGE, 
+            routing_key=self.in_key)          
+        ]
+
+    # setup blocks
+    self.in_block = Block(self.in_key, 
+        type='toamqp',
+        rule = self._parse_rule(rule, self.in_key)
+    )
+    
+    self.out_block = Block(self.out_key, 
+        type='fromamqp',
+        rule = self._parse_rule(rule, self.out_key)
+    )
+
+    self._cached_connections = []
+
+  def _parse_rule(self, raw, routing_key):
+    return {
+      "Exchange": raw.get('Exchange', settings.EXCHANGE_NAME),
+      "ExchangeType": raw.get('ExchangeType', settings.EXCHANGE_TYPE),
+      "Host": raw.get('Host', 'localhost'),
+      "Password": raw.get('Password', 'guest'),
+      "Port": raw.get('Port', '5672'),
+      "RoutingKey": routing_key,
+      "Username": raw.get('Username', 'guest')
+    }
+
+  @property 
+  def raw(self):
+    return [self.in_block.raw, self.out_block.raw]
+
+  def get_consumers(self, Consumer, channel):
+    return [Consumer(self.queues, callbacks=[self.on_message])]
+
+  def on_message(self, body, message):
+    body = ujson.loads(body)
+    messages = self.main(body)
+    for m in messages:
+      self.send_to(m)
+    message.ack()
+
+  def send_to(self, body):
+    with producers[self.connection].acquire(block=True) as producer: 
+      try:
+        maybe_declare(EXCHANGE, producer.channel) 
+      except SocketError as e:
+        if e.errno != errno.ECONNRESET:
+          raise
+      else:
+          producer.publish(
+            body, 
+            exchange=settings.EXCHANGE_NAME,
+            declare=[EXCHANGE], 
+            serializer='json', 
+            routing_key=self.out_key)
+
+  def main(self, body):
+    yield body
+
+  def attach(self):
+    self.in_block.refresh()
+    self.out_block.refresh()
+    for c in self._cached_connections:
+      try:
+        c.attach()
+      except ValueError:
+        pass 
+    try:
+      self.run()
+    except KeyboardInterrupt:
+      raise
+
+  def detach(self):
+    self._cached_connections = []
+    self._cached_connections.extend(self.in_block.connections)
+    self._cached_connections.extend(self.out_block.connections)
+    self.in_block.detach()
+    self.out_block.detach()
+
+  def refresh(self):
+    self._cached_connections = []
+    self._cached_connections.extend(self.in_block.connections)
+    self._cached_connections.extend(self.out_block.connections)
+
+    self.in_block.refresh()
+    self.out_block.refresh()
+    self.attach()
 
 class Block:
  
@@ -22,8 +140,8 @@ class Block:
       type = None, 
       rule = {},
       position = None,
-      x_pos = rand_x(),
-      y_pos = rand_y(),
+      x_pos = random_position(20, 900),
+      y_pos = random_position(20, 500),
       **kw
     ):
 
@@ -58,12 +176,12 @@ class Block:
       # parse position
       pos = kw['raw'].get('Position')
       if pos:
-        self.x_pos = pos.get('X', rand_x())
-        self.y_pos = pos.get('Y', rand_y())
+        self.x_pos = pos.get('X', random_position(20, 900))
+        self.y_pos = pos.get('Y', random_position(20, 500))
       
       else:
-        self.x_pos = rand_x()
-        self.y_pos = rand_y()
+        self.x_pos = random_position(20, 900)
+        self.y_pos = random_position(20, 500)
 
     if kw.get('_init', True):
       # refresh block
@@ -91,6 +209,19 @@ class Block:
       'Rule': self.rule,
       'Position': self.position
     }
+
+  @property 
+  def connections(self):
+    
+    """
+    Blocks associated with this Connection
+    """
+
+    connections = []
+    for raw in self._st.list_connections():
+      if raw['ToId'] == self.id or raw['FromId'] == self.id:
+        connections.append(Connection(raw=raw))
+    return connections
 
   @property 
   def in_blocks(self):
@@ -125,7 +256,7 @@ class Block:
     This Block's available InRoutes
     """
 
-    resp = self._lib.get(self.type, {})
+    resp = self._lib.get(self.id, {})
     return resp.get('InRoutes', [])
 
   @property 
@@ -135,7 +266,7 @@ class Block:
     This Block's available OutRoutes
     """
 
-    resp = self._lib.get(self.type, {})
+    resp = self._lib.get(self.id, {})
     return resp.get('OutRoutes', [])
 
   @property 
@@ -145,7 +276,7 @@ class Block:
     This Block's available QueryRoutes
     """
 
-    resp = self._lib.get(self.type, {})
+    resp = self._lib.get(self.id, {})
     return resp.get('QueryRoutes', [])
 
   def attach(self):
@@ -195,12 +326,15 @@ class Block:
     Check if this Block is attached to streamtools,
     if so, detach it first. Always attach it.
     """
-    
+    cached_connections = self.connections 
+
     if self.is_attached():
     
       self.detach()
 
     self.attach()
+    for c in cached_connections:
+      c.attach()
 
   def send_to(self, **kw):
     
@@ -253,7 +387,6 @@ class Block:
     
     return "< Block.{} = {}, {} >"\
       .format(self.id, self.type, self.rule)
-
 
 
 class Connection:
@@ -523,7 +656,7 @@ class Pattern:
 
     """
     Detach this Pattern from streamtools. 
-    Only delete Blocks + Connections associated 
+    Only delete Blocks + Connection associated 
     with this pattern.
     """
 
@@ -625,37 +758,4 @@ class Pattern:
 
     return "< Pattern = Connections => {}, Blocks => {} >"\
       .format(self.connections, self.blocks)
-
-
-class Plugin:
-
-  """
-  A plugin is a custom class which 
-  creates two blocks:
-  
-  one that recieves a msg from a channel
-  one that emits msgs to a channel 
-  
-  each block can have a configurable route 
-  which is handled by assoiciated methods:
-
-  attach
-  detach  
-  (confifurable) message queue 
-  and one that sends to another 
-
-  in between is a python function
-  which the user defines.
-  
-  This enables endless extensability.
-
-  """
-  def __init__(self, **kw):
-
-
-    # initialize client.
-    self.url = kw.get('url', settings.STREAMTOOLS_URL)
-    self._st = Api(self.url)
-
-
 

@@ -330,6 +330,9 @@ class Api:
     if 'daemon' in resp and 'does not exist' in resp['daemon']:
       raise ValueError('Block "{}" Does not exist'.format(conn_id))
 
+    elif 'daemon' in resp and 'already exist' in resp['daemon']:
+      raise ValueError('Block "{}" Already exists'.format(conn_id))
+
     elif 'dameon' in resp:
       raise ValueError('Input is malformed.')
     
