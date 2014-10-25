@@ -21,7 +21,18 @@ class Block:
       y_pos = rand_y(),
       **kw
     ):
-    
+
+    # get id 
+    self.id = id
+
+    # initialize client.
+    self.url = kw.get('url', settings.STREAMTOOLS_URL)
+    self._st = Api(self.url)
+
+    # pull in existing block
+    if self.exists():
+      kw['raw'] = self._st.get_block(self.id)
+
     # check for raw switch
     if not 'raw' in kw:
       
@@ -33,7 +44,6 @@ class Block:
     
     # parse raw stream tools block object.
     else:
-      
       self.id = kw['raw'].get('Id', id)
       self.type = kw['raw'].get('Type', type)
       self.rule = kw['raw'].get('Rule', rule)
@@ -48,12 +58,9 @@ class Block:
         self.x_pos = rand_x()
         self.y_pos = rand_y()
 
-    # initialize client.
-    self.url = kw.get('url', settings.STREAMTOOLS_URL)
-    self._st = Api(self.url)
-
-    # refresh block
-    self.refresh()
+    if kw.get('_init', True):
+      # refresh block
+      self.refresh()
 
   @property 
   def position(self):
@@ -125,12 +132,7 @@ class Block:
   def __add__(self, obj):
 
     if isinstance(obj, Block):
-      c =  Connection(from_id=self.id, to_id=obj.id)
-      return c
-
-    elif isinstance(obj, Pattern):
-      obj.blocks.append(self)
-      return obj
+      return Connection(from_id=self.id, to_id=obj.id)
 
   def __repr__(self):
     return "< Block.{} = {}, {} >"\
@@ -146,10 +148,20 @@ class Connection:
       to_route = "in",
       **kw
     ):
+    # get id 
+    self.id = id
+
+    # initialize client.
+    self.url = kw.get('url', settings.STREAMTOOLS_URL)
+    self._st = Api(self.url)
+
+    # pull in existing block
+    if self.exists():
+      print here
+      kw['raw'] = self._st.get_block()
 
     if not 'raw' in kw:
 
-      self.id = id
       self.from_id = from_id
       self.to_id = to_id  
       self.to_route = to_route
@@ -160,13 +172,9 @@ class Connection:
       self.to_id = kw['raw'].get('ToId', to_id)
       self.to_route = kw['raw'].get('ToRoute', to_route)
 
-    
-    # initialize client.
-    self.url = kw.get('url', settings.STREAMTOOLS_URL)
-    self._st = Api(self.url)
-
-    # build
-    self.refresh()
+    if kw.get('_init', True):
+      # refresh block
+      self.refresh()
 
   @property 
   def raw(self):
@@ -179,6 +187,10 @@ class Connection:
       'ToId': self.to_id,
       'ToRoute': self.to_route
     }
+
+  @property 
+  def blocks(self):
+    return [Block(self.from_id, _init=False), Block(self.to_id, _init=False)]
 
   def stop(self):
 
@@ -221,32 +233,32 @@ class Connection:
       return False
 
   def recieve_from(self, route="last"):
-    msg = self._st.from_connection_route(self.id, route=route)
-    return msg.pop('Last', None)
-
-  def stream(self, interval=1, max_buffer=60):
+    return self._st.from_connection_route(self.id, route=route)
+    
+  def listen(self, interval=1, max_buffer=60):
     """
     Poll the last route for new results
     """
     
     msg_id = ''
-    buffer = set()
+    buffer = []
     
     while True:
       
       # get msg, create id
       msg = self.recieve_from()
+      msg = msg.pop('Last', None)
 
       if msg:
         msg_id = md5(msg)
 
         if msg_id not in buffer:
-          buffer.add(msg_id)
+          buffer.append(msg_id)
 
           yield msg 
 
       if len(list(buffer)) >- max_buffer:
-        buffer = set(list(buffer)[:-1])
+        buffer = [buffer[-1]]
 
       time.sleep(interval)
 
@@ -260,7 +272,11 @@ class Connection:
 
     elif isinstance(obj, Pattern):
       obj.connections.append(self)
+      self.blocks.extend(self.blocks)
       return obj
+
+    elif isinstance(obj, Connection):
+      return Pattern(connections = [obj, self])
 
   def __repr__(self):
     return "< Connection.{} = Block.{} => Block.{}.{} >"\
@@ -271,12 +287,11 @@ class Pattern:
 
   def __init__(self,
       connections = [],
-      blocks = [],
       **kw
     ):
     
     self.connections = connections 
-    self.blocks = blocks
+    self.blocks = {b for c in self.connections for b in c.blocks}
 
     # initialize client.
     self.url = kw.get('url', settings.STREAMTOOLS_URL)
@@ -294,9 +309,9 @@ class Pattern:
     elif 'inblock' in kw:
       self.inblock = kw['inblock']
 
-    elif len(blocks):
-      self.inblock = blocks[0]
-      self.outblock = blocks[-1]
+    elif len(self.blocks):
+      self.inblock = self.blocks[0]
+      self.outblock = self.blocks[-1]
 
   @property 
   def raw(self):
@@ -305,6 +320,14 @@ class Pattern:
       'Blocks': [b.raw for b in self.blocks]
     }
   
+  @property 
+  def connection_ids(self):
+    return [c.id for c in self.connections]
+
+  @property 
+  def block_ids(self):
+    return [b.id for b in self.blocks]
+
   def rm(self):
 
     # only delete blocks + connection associated 
@@ -339,12 +362,29 @@ class Pattern:
 
   def __add__(self, obj):
     
-    if isinstance(obj, Block):
-      self.blocks.append(obj)
+    if isinstance(obj, Connection):
+      
+      # only add new conections + blocks to Pattern
+      if obj.id not in self.connection_ids:
+        self.connections.append(obj)
+      
+      for b in obj.blocks:
+        if b.id not in self.block_ids:
+          self.blocks.append(b)
+
       return self
 
-    elif isinstance(obj, Connection):
-      self.connections.append(obj)
+    elif isinstance(obj, Pattern):
+      
+      # only add new conections + blocks to Pattern
+      for c in obj.connections:
+        if c.id not in obj.connection_ids:
+          self.connections.append(c)
+      
+      for b in obj.blocks:
+        if b.id not in self.block_ids:
+          self.blocks.append(b)
+
       return self
 
   def __repr__(self):

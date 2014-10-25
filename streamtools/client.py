@@ -170,8 +170,8 @@ class Api:
     
     resp = self._http("GET", 'blocks/{}'.format(block_id))
     
-    if 'daemon' in resp and 'already exists' in resp['daemon']:
-      raise ValueError('Block "{}" already exists'.format(block_id))
+    if 'daemon' in resp and 'does not exist' in resp['daemon']:
+      raise ValueError('Block "{}" does not exist'.format(block_id))
     
     return resp
 
@@ -201,6 +201,9 @@ class Api:
     
     if 'daemon' in resp and 'already exists' in resp['daemon']:
       raise ValueError('Block "{}" already exists'.format(block_id))
+
+    elif 'dameon' in resp:
+      raise ValueError('Input is malformed.')
     
     return resp['Id']
 
@@ -214,6 +217,9 @@ class Api:
 
     if 'daemon' in resp and 'does not exist' in resp['daemon']:
       raise ValueError('Block "{}" Does not exist'.format(block_id))
+
+    elif 'dameon' in resp:
+      raise ValueError('Input is malformed.')
     
     return True
 
@@ -293,6 +299,9 @@ class Api:
 
     if 'daemon' in resp and 'does not exist' in resp['daemon']:
       raise ValueError('Block "{}" Does not exist'.format(conn_id))
+
+    elif 'dameon' in resp:
+      raise ValueError('Input is malformed.')
     
     return resp['Id']
 
@@ -306,6 +315,9 @@ class Api:
 
     if 'daemon' in resp and 'does not exist' in resp['daemon']:
       raise ValueError('Connection "{}" Does not exist'.format(conn_id))
+
+    elif 'dameon' in resp:
+      raise ValueError('Input is malformed.')
     
     return resp
 
@@ -319,6 +331,9 @@ class Api:
     
     if 'daemon' in resp and 'does not exist' in resp['daemon']:
       raise ValueError('Connection "{}" Does not exist'.format(conn_id))
+
+    elif 'dameon' in resp:
+      raise ValueError('Input is malformed.')
     
     return True
 
