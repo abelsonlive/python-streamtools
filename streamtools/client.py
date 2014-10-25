@@ -13,6 +13,7 @@ class Api:
     self.s = Session()
 
   def _parse_url(self, url):
+    
     """
     Parse the url given on initialization.
     """
@@ -34,6 +35,7 @@ class Api:
 
 
   def _http(self, method, path, json=True, **kw):
+    
     """
     A wrapper for http requests to streamtools.
     """
@@ -64,13 +66,24 @@ class Api:
 
   @property 
   def connection_ids(self):
+    
+    """
+    The list of active connection Id's
+    """
+    
     return [c['Id'] for c in self.list_connections()]
 
   @property 
   def block_ids(self):
+    
+    """
+    The list of active block Id's
+    """
+    
     return frozenset([c['Id'] for c in self.list_blocks()])
 
   def version(self):
+    
     """
     Get the current version of StreamTools
     """
@@ -79,6 +92,7 @@ class Api:
 
 
   def library(self):
+    
     """
     Get parameters for all available blocks.
     """
@@ -87,6 +101,7 @@ class Api:
 
 
   def get_pattern(self):
+    
     """
     Export the current state of the pattern.
     """
@@ -95,6 +110,7 @@ class Api:
 
 
   def set_pattern(self, pattern):
+    
     """
     Import a pattern from a dictionary object.
     """
@@ -107,9 +123,11 @@ class Api:
     return True
 
   def delete_pattern(self):
+    
     """
     Delete the current pattern
     """
+    
     output = []
     output.append(self.delete_connections())
     output.append(self.delete_blocks())
@@ -137,6 +155,7 @@ class Api:
 
 
   def stream(self, block_id):
+    
     """
     Stream output from a block's httpstream.
     """
@@ -157,6 +176,7 @@ class Api:
 
 
   def list_blocks(self):
+    
     """
     List all blocks in current pattern.
     """
@@ -165,6 +185,7 @@ class Api:
 
 
   def get_block(self, block_id):
+    
     """
     Get a representation of a block.
     """
@@ -178,6 +199,7 @@ class Api:
 
 
   def create_block(self, block_id=None, **kw):
+    
     """
     Create a block given an id, type, rule (dict), xpos and ypos.
     """
@@ -210,6 +232,7 @@ class Api:
 
 
   def delete_block(self, block_id):
+    
     """
     Delete a block.
     """
@@ -226,6 +249,7 @@ class Api:
 
 
   def delete_blocks(self):
+    
     """
     Delete all blocks
     """
@@ -237,6 +261,7 @@ class Api:
 
 
   def update_block(self, block_id, rule):
+    
     """
     A helper for updating a block's rule.
     """
@@ -245,6 +270,7 @@ class Api:
 
 
   def to_block_route(self, block_id, **kw):
+    
     """
     Route a message to block's input route.
     """
@@ -261,6 +287,7 @@ class Api:
 
 
   def from_block_route(self, block_id, **kw):
+    
     """
     Get the current state of a blocks specified output route
     """
@@ -271,6 +298,7 @@ class Api:
 
 
   def list_connections(self):
+    
     """
     Get all current connections.
     """
@@ -279,6 +307,7 @@ class Api:
 
 
   def create_connection(self, conn_id=None, **kw):
+    
     """
     Create a connection.
     """
@@ -308,6 +337,7 @@ class Api:
 
 
   def get_connection(self, conn_id):
+    
     """
     Get a connection object
     """
@@ -324,6 +354,7 @@ class Api:
 
 
   def delete_connection(self, conn_id):
+    
     """
     Delete a connection.
     """
@@ -340,6 +371,7 @@ class Api:
 
 
   def delete_connections(self):
+    
     """
     Delete all connections.
     """
@@ -351,8 +383,11 @@ class Api:
 
 
   def from_connection_route(self, conn_id, route='last'):
+    
     """
     Get the current state of a connection's specified route.
     """
     
     return self._http("GET", 'connections/{}/{}'.format(conn_id, route))
+
+
