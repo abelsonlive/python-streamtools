@@ -175,7 +175,6 @@ class Connection:
 
     # pull in existing block
     if self.exists():
-      print here
       kw['raw'] = self._st.get_block()
 
     if not 'raw' in kw:
