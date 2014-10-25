@@ -320,7 +320,10 @@ class Connection:
     Blocks associated with this Connection
     """
 
-    return [Block(self.from_id, _init=False), Block(self.to_id, _init=False)]
+    return [
+      Block(self.from_id, _init=False), 
+      Block(self.to_id, _init=False)
+    ]
 
   def detach(self):
 
