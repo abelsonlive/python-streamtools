@@ -215,8 +215,8 @@ class Block:
 
     return self._st.to_block_route(
             self.id, 
-            route=kw['route'], 
-            msg=kw['msg']
+            route = kw['route'], 
+            msg = kw['msg']
           )  
 
   def recieve_from(self, **kw):
@@ -279,7 +279,7 @@ class Connection:
 
     # pull in existing block if it exists.
     if self.is_attached():
-      kw['raw'] = self._st.get_block(self.id)
+      kw['raw'] = self._st.get_connection(self.id)
 
     if not 'raw' in kw:
 
@@ -453,8 +453,14 @@ class Pattern:
       connections = [],
       **kw
     ):
+
+    # listify
+    if not isinstance(connections, list):
+      connections = [connections]
     
     self.connections = connections 
+
+    # lookup blocks
     self.blocks = [b for c in self.connections for b in c.blocks]
 
     # initialize client.
@@ -546,25 +552,25 @@ class Pattern:
     if not self.in_block:
       self.in_block = self.blocks[0]
 
-    in_block = [b for b in self.blocks if b.id == self.in_block][0]
+    in_block = [b for b in self.blocks if b.id == self.in_block.id][0]
   
     return self._st.to_block_route(
             in_block.id, 
-            route=self.in_route, 
-            msg=msg
+            route = self.in_route, 
+            msg = msg
           )
 
   def listen(self):
 
     """
-    Listen for messages from the out route 
+    Listen for messages from the out_route 
     of this pattern's specifed out_block
     """
 
     if not self.out_block:
       self.out_block = self.blocks[-1]
 
-    out_block = [b for b in self.blocks if b.id == self.out_block][0]
+    out_block = [b for b in self.blocks if b.id == self.out_block.id][0]
     return self._st.stream(out_block.id)
 
   def __add__(self, obj):
