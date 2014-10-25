@@ -6,7 +6,7 @@ import settings
 import time 
 import ujson
 import uuid
-from kombu import Queue
+from kombu import Queue, Exchange
 from kombu.common import maybe_declare
 from kombu.pools import producers
 from kombu.mixins import ConsumerMixin
@@ -31,13 +31,20 @@ class Plugin(ConsumerMixin):
       id = str(uuid.uuid4())
     
     # determine routing keys.
+    self.id = id
     self.in_key = "in-{}".format(id)
     self.out_key = "out-{}".format(id)
 
+    # setup exchange
+    self.exchange_name = id
+    self.exchange_type = settings.EXCHANGE_TYPE
+    self.exchange = Exchange(self.exchange_name, type=self.exchange_type)
+
+
     # setup queues
     self.queues = [
-        Queue(settings.EXCHANGE_NAME, 
-            settings.EXCHANGE, 
+        Queue(self.id, 
+            self.exchange, 
             routing_key=self.in_key)          
         ]
 
@@ -56,8 +63,8 @@ class Plugin(ConsumerMixin):
 
   def _parse_rule(self, raw, routing_key):
     return {
-      "Exchange": raw.get('Exchange', settings.EXCHANGE_NAME),
-      "ExchangeType": raw.get('ExchangeType', settings.EXCHANGE_TYPE),
+      "Exchange": raw.get('Exchange', self.exchange_name),
+      "ExchangeType": raw.get('ExchangeType', self.exchange_type),
       "Host": raw.get('Host', 'localhost'),
       "Password": raw.get('Password', 'guest'),
       "Port": raw.get('Port', '5672'),

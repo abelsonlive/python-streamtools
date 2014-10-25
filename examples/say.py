@@ -3,15 +3,15 @@ from string import punctuation
 from unidecode import unidecode
 from streamtools import Plugin, Block
 
-# define blocks
-ws = Block('wiki-ws', 
+# create blocks
+ws_block = Block('wiki-ws', 
   type='fromwebsocket', 
   rule={'url': 
   'ws://wikimon.hatnote.com:9000'})
 
-log = Block('log', type='tolog')
+log_block = Block('log', type='tolog')
 
-# plugin to speak text
+# create plugin to speak text
 say = Plugin('say')
 
 def say_main(body):
@@ -19,14 +19,14 @@ def say_main(body):
   if text: 
     text = "".join([c for c in text if c not in punctuation])
     if text:
-      os.system('say -r 10 -v Princess "%s" &' % unidecode(text))
+      print len(text)
       yield {'clean_text': text}
 
 say.main = say_main 
 
 # define connections 
-ws_to_say = (ws + say.in_block)
-say_to_log = (say.out_block + log)
+print ws_block + say.in_block
+print say.out_block + log_block
 
 # attach plugin
 say.attach()
