@@ -383,7 +383,7 @@ class Connection:
     """
 
     return self._st.from_connection_route(self.id, route=route)
-    
+  
   def listen(self, interval=1, max_buffer=60):
     
     """
