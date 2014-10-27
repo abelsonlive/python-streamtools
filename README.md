@@ -68,7 +68,7 @@ for line in b1.listen():
 
 ### Creating Custom Plugins
 **NOTE** requires rabbitmq.
-`python-streamtools` includes a class for generating `blocks` which enable the use of a customizable python functions.  Plugin's work be creating two built-int `streamtools` blocks: `toampq` and `fromampq` and spawns a reader which listens to `toampq` passes input to a custom function and emits output to the `fromampq` block. In order to initialize the connection you must call `plugin.attach()`
+`python-streamtools` includes a class for generating `blocks` which enable the use of a customizable python functions.  Plugin's work be creating two built-in `streamtools` blocks: `toampq` and `fromampq` and spawns a reader which listens to `toampq` passes input to a custom function and emits output to the `fromampq` block. In order to initialize the connection you must call `plugin.attach()` which will run forever.
 ```python
 from streamtools import Plugin, Block 
 
