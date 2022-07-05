@@ -7,6 +7,6 @@ librabbitmq==1.5.2
 pytz==2014.7
 requests==2.4.3
 six==1.8.0
-ujson==1.33
+ujson==5.4.0
 ws4py==0.3.4
 wsgiref==0.1.2
